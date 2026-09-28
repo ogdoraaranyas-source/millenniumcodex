@@ -3,112 +3,294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Code Editor</title>
+    <title>Millennium Software Solutions - IDE</title>
     <style>
-        /* Basic Layout Reset */
+        * {
+            box-sizing: border-box;
+        }
         body {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Left Sidebar --- */
+        .sidebar {
+            width: 260px;
+            background-color: #252526;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+        .brand {
+            padding: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #4CAF50;
+            background-color: #2d2d2d;
+            border-bottom: 1px solid #333;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .file-explorer-header {
+            padding: 10px 15px;
+            font-size: 12px;
+            color: #969696;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .new-file-btn {
+            background: none;
+            border: none;
+            color: #4CAF50;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .new-file-btn:hover {
+            color: #66bb6a;
+        }
+        .file-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .file-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .file-item:hover {
+            background-color: #2a2d2e;
+        }
+        .file-item.active {
+            background-color: #37373d;
+            color: #ffffff;
+            border-left: 3px solid #4CAF50;
+        }
+
+        /* --- Main Workspace Area --- */
+        .main-workspace {
+            flex: 1;
             display: flex;
             flex-direction: column;
             height: 100vh;
-            background-color: #1e1e1e;
         }
 
         /* Top Bar with Run Button */
-        header {
+        .top-bar {
             background-color: #2d2d2d;
             padding: 10px 20px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #444;
+            border-bottom: 1px solid #333;
+            height: 50px;
         }
-
-        button {
+        .active-file-indicator {
+            font-size: 14px;
+            color: #858585;
+        }
+        .run-btn {
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 8px 18px;
-            font-size: 15px;
+            padding: 6px 16px;
+            font-size: 14px;
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
-            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
-
-        button:hover {
+        .run-btn:hover {
             background-color: #45a049;
         }
 
-        /* Main Container for Split Screen */
-        .workspace {
+        /* Split View: Editor & Preview */
+        .editor-preview-container {
             display: flex;
             flex: 1;
-            height: calc(100vh - 55px);
+            height: calc(100vh - 50px);
         }
-
-        /* Left Side: Textarea Code Editor */
-        textarea {
+        .editor-pane {
             width: 50%;
             height: 100%;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #333;
+        }
+        textarea {
+            flex: 1;
             background-color: #1e1e1e;
             color: #d4d4d4;
             font-family: 'Courier New', Courier, monospace;
             font-size: 14px;
             padding: 15px;
             border: none;
-            border-right: 2px solid #333;
             resize: none;
             outline: none;
             line-height: 1.5;
         }
-
-        /* Right Side: Live Output Preview */
-        iframe {
+        .preview-pane {
             width: 50%;
             height: 100%;
-            border: none;
             background-color: white;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
         }
     </style>
 </head>
 <body>
 
-    <!-- Top Navigation Bar -->
-    <header>
-        <button onclick="executeCode()">▶ Run Code</button>
-    </header>
+    <!-- Left Sidebar Menu -->
+    <div class="sidebar">
+        <div class="brand">Millennium Software Solutions</div>
+        <div class="file-explorer-header">
+            <span>Files</span>
+            <button class="new-file-btn" onclick="createNewFile()" title="Create New File">+</button>
+        </div>
+        <ul id="file-list" class="file-list">
+            <!-- Populated dynamically via JavaScript -->
+        </ul>
+    </div>
 
-    <!-- Split Screen Workspace -->
-    <div class="workspace">
-        <!-- Left Side Input -->
-        <textarea id="code-editor" placeholder="Write your HTML/CSS/JS here..."><h1>Welcome to My Editor</h1>
-<p>Type some HTML or CSS and click Run!</p>
-<style>
-    body { background: #f0f8ff; font-family: sans-serif; text-align: center; padding-top: 50px; }
-    h1 { color: #2c3e50; }
-</style></textarea>
+    <!-- Main Workspace -->
+    <div class="main-workspace">
+        <!-- Top Bar with Run Button -->
+        <div class="top-bar">
+            <span id="active-file-label" class="active-file-indicator">Editing: index.html</span>
+            <button class="run-btn" onclick="runProject()">▶ Run</button>
+        </div>
 
-        <!-- Right Side Output Preview -->
-        <iframe id="output-preview"></iframe>
+        <!-- Split Screen: Editor & Output -->
+        <div class="editor-preview-container">
+            <!-- Left Side: Code Editor -->
+            <div class="editor-pane">
+                <textarea id="code-editor" oninput="saveCurrentContent()"></textarea>
+            </div>
+            <!-- Right Side: Live Output Preview -->
+            <div class="preview-pane">
+                <iframe id="output-preview"></iframe>
+            </div>
+        </div>
     </div>
 
     <script>
-        function executeCode() {
-            // 1. Get the code from the textarea
-            const userCode = document.getElementById('code-editor').value;
+        // Virtual File System State
+        let projectFiles = {
+            "index.html": {
+                content: '<!DOCTYPE html>\n<html>\n<head>\n  <link rel="stylesheet" href="style.css">\n</head>\n<body>\n  <h1>Welcome to Millennium IDE</h1>\n  <p>Edit this code and click Run!</p>\n  <script src="script.js"><\/script>\n</body>\n</html>'
+            },
+            "style.css": {
+                content: "body {\n  font-family: sans-serif;\n  background: #f4f4f9;\n  text-align: center;\n  padding-top: 50px;\n}\nh1 {\n  color: #2c3e50;\n}"
+            },
+            "script.js": {
+                content: "console.log('Millennium IDE initialized successfully!');"
+            }
+        };
 
-            // 2. Target the iframe element
-            const iframe = document.getElementById('output-preview');
+        let currentFile = "index.html";
 
-            // 3. Inject the code safely into the iframe's srcdoc property
-            iframe.srcdoc = userCode;
+        // Initialize Editor
+        function initIDE() {
+            renderFileList();
+            switchFile("index.html");
+            runProject();
         }
 
-        // Run automatically on page load to show default text
-        executeCode();
-    </script>
+        // Render Sidebar File List
+        function renderFileList() {
+            const fileListEl = document.getElementById("file-list");
+            fileListEl.innerHTML = "";
+            
+            for (let fileName in projectFiles) {
+                const li = document.createElement("li");
+                li.className = `file-item ${fileName === currentFile ? 'active' : ''}`;
+                li.innerHTML = `📄 ${fileName}`;
+                li.onclick = () => switchFile(fileName);
+                fileListEl.appendChild(li);
+            }
+        }
 
+        // Switch Between Files
+        function switchFile(fileName) {
+            // Save current editor text first
+            saveCurrentContent();
+
+            currentFile = fileName;
+            document.getElementById("code-editor").value = projectFiles[fileName].content;
+            document.getElementById("active-file-label").innerText = `Editing: ${fileName}`;
+            
+            renderFileList();
+        }
+
+        // Save Content on Typing
+        function saveCurrentContent() {
+            projectFiles[currentFile].content = document.getElementById("code-editor").value;
+        }
+
+        // Create a New File
+        function createNewFile() {
+            let fileName = prompt("Enter file name (e.g., about.html, custom.css):");
+            if (fileName && fileName.trim() !== "") {
+                fileName = fileName.trim();
+                if (!projectFiles[fileName]) {
+                    projectFiles[fileName] = { content: `/* New file: ${fileName} */\n` };
+                    switchFile(fileName);
+                } else {
+                    alert("File already exists!");
+                }
+            }
+        }
+
+        // Run/Bundle and Render Output in Iframe
+        function runProject() {
+            saveCurrentContent();
+
+            const html = projectFiles["index.html"] ? projectFiles["index.html"].content : "";
+            const css = projectFiles["style.css"] ? projectFiles["style.css"].content : "";
+            const js = projectFiles["script.js"] ? projectFiles["script.js"].content : "";
+
+            // Inject CSS and JS dynamically into the HTML frame context
+            let bundledCode = html;
+            
+            // If the user included standard tags, inject styles/scripts cleanly
+            if (bundledCode.includes("</head>")) {
+                bundledCode = bundledCode.replace("</head>", `<style>${css}</style></head>`);
+            } else {
+                bundledCode = `<style>${css}</style>` + bundledCode;
+            }
+
+            if (bundledCode.includes("</body>")) {
+                bundledCode = bundledCode.replace("</body>", `<script>${js}<\/script></body>`);
+            } else {
+                bundledCode = bundledCode + `<script>${js}<\/script>`;
+            }
+
+            // Display in iframe
+            const iframe = document.getElementById("output-preview");
+            iframe.srcdoc = bundledCode;
+        }
+
+        // Run on startup
+        window.onload = initIDE;
+    </script>
 </body>
 </html>
