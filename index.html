@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Code Editor</title>
+    <style>
+        /* Basic Layout Reset */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #1e1e1e;
+        }
+
+        /* Top Bar with Run Button */
+        header {
+            background-color: #2d2d2d;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #444;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Main Container for Split Screen */
+        .workspace {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 55px);
+        }
+
+        /* Left Side: Textarea Code Editor */
+        textarea {
+            width: 50%;
+            height: 100%;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            padding: 15px;
+            border: none;
+            border-right: 2px solid #333;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+        }
+
+        /* Right Side: Live Output Preview */
+        iframe {
+            width: 50%;
+            height: 100%;
+            border: none;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <header>
+        <button onclick="executeCode()">▶ Run Code</button>
+    </header>
+
+    <!-- Split Screen Workspace -->
+    <div class="workspace">
+        <!-- Left Side Input -->
+        <textarea id="code-editor" placeholder="Write your HTML/CSS/JS here..."><h1>Welcome to My Editor</h1>
+<p>Type some HTML or CSS and click Run!</p>
+<style>
+    body { background: #f0f8ff; font-family: sans-serif; text-align: center; padding-top: 50px; }
+    h1 { color: #2c3e50; }
+</style></textarea>
+
+        <!-- Right Side Output Preview -->
+        <iframe id="output-preview"></iframe>
+    </div>
+
+    <script>
+        function executeCode() {
+            // 1. Get the code from the textarea
+            const userCode = document.getElementById('code-editor').value;
+
+            // 2. Target the iframe element
+            const iframe = document.getElementById('output-preview');
+
+            // 3. Inject the code safely into the iframe's srcdoc property
+            iframe.srcdoc = userCode;
+        }
+
+        // Run automatically on page load to show default text
+        executeCode();
+    </script>
+
+</body>
+</html>
