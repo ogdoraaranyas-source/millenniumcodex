@@ -265,10 +265,19 @@
         }
 
         function runProject() {
-            const html = projectFiles["index.html"] ? projectFiles["index.html"].content : "";
+            // Determine which HTML content to render based on the active file
+            let html = "";
+            if (currentFile.endsWith(".html")) {
+                html = projectFiles[currentFile].content;
+            } else {
+                // Fallback to index.html if viewing a CSS/JS file
+                html = projectFiles["index.html"] ? projectFiles["index.html"].content : "";
+            }
+
             let css = "";
             let js = "";
 
+            // Gather all CSS and JS files dynamically from the virtual file system
             for (let file in projectFiles) {
                 if (file.endsWith(".css")) css += projectFiles[file].content + "\n";
                 if (file.endsWith(".js")) js += projectFiles[file].content + "\n";
