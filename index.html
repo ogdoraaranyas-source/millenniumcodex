@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Millennium Software Solutions - IDE</title>
     
-    <!-- Load Monaco Editor via CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css">
+    <!-- CodeMirror CSS for Code Editing & Theme -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
 
     <style>
         * { box-sizing: border-box; }
@@ -66,10 +67,10 @@
 
         /* Split View */
         .editor-preview-container { display: flex; flex: 1; height: calc(100vh - 50px); }
-        .editor-pane { width: 50%; height: 100%; border-right: 1px solid #333; }
+        .editor-pane { width: 50%; height: 100%; border-right: 1px solid #333; display: flex; flex-direction: column; }
         
-        /* Monaco Container */
-        #monaco-editor { width: 100%; height: 100%; }
+        /* CodeMirror Styling Override to fill pane */
+        .CodeMirror { flex: 1; height: auto !important; font-family: 'Courier New', Courier, monospace; font-size: 14px; }
 
         .preview-pane { width: 50%; height: 100%; background-color: white; }
         iframe { width: 100%; height: 100%; border: none; }
@@ -101,9 +102,9 @@
         </div>
 
         <div class="editor-preview-container">
-            <!-- Monaco Editor Pane replaces Textarea -->
+            <!-- CodeMirror Editor Pane -->
             <div class="editor-pane">
-                <div id="monaco-editor"></div>
+                <textarea id="code-editor"></textarea>
             </div>
             <!-- Live Preview -->
             <div class="preview-pane">
@@ -112,48 +113,49 @@
         </div>
     </div>
 
-    <!-- Monaco Editor Loader Script -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <!-- CodeMirror Core and Mode Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+
     <script>
         const defaultFiles = {
             "index.html": {
-                content: `<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Document</title>\n    <link rel="stylesheet" href="style.css">\n</head>\n<body>\n    <h1>Welcome to Millennium IDE</h1>\n    <p>Start typing HTML here for auto-hints...</p>\n    <script src="script.js"><\\/script>\n</body>\n</html>`
+                content: `<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Document</title>\n    <link rel="stylesheet" href="style.css">\n</head>\n<body>\n    <h1>Welcome to Millennium IDE</h1>\n    <p>Edit this file and click Run!</p>\n    <script src="script.js"><\\/script>\n</body>\n</html>`
             },
             "style.css": {
                 content: "body {\n    font-family: sans-serif;\n    background: #f4f4f9;\n    text-align: center;\n    padding-top: 50px;\n}\nh1 {\n    color: #2c3e50;\n}"
             },
             "script.js": {
-                content: "console.log('Monaco Editor loaded successfully!');"
+                content: "console.log('Millennium IDE initialized successfully!');"
             }
         };
 
         let projectFiles = {};
         let currentFile = "index.html";
-        let editor = null;
+        let codeMirrorEditor = null;
 
-        // Initialize Monaco Editor
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min' }});
-        require(['vs/editor/editor.main'], function() {
-            editor = monaco.editor.create(document.getElementById('monaco-editor'), {
-                value: '',
-                language: 'html',
-                theme: 'vs-dark',
-                automaticLayout: true,
-                fontSize: 14
+        function initIDE() {
+            // Initialize CodeMirror
+            codeMirrorEditor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+                lineNumbers: true,
+                theme: "dracula",
+                mode: "htmlmixed",
+                autoCloseTags: true,
+                matchBrackets: true
             });
 
             // Save changes automatically when typing
-            editor.onDidChangeModelContent(() => {
+            codeMirrorEditor.on("change", () => {
                 if (projectFiles[currentFile]) {
-                    projectFiles[currentFile].content = editor.getValue();
+                    projectFiles[currentFile].content = codeMirrorEditor.getValue();
                     persistStorage();
                 }
             });
 
-            initIDE();
-        });
-
-        function initIDE() {
+            // Load saved local storage files or defaults
             const savedData = localStorage.getItem('millennium_ide_files');
             if (savedData) {
                 try { projectFiles = JSON.parse(savedData); } catch (e) { projectFiles = JSON.parse(JSON.stringify(defaultFiles)); }
@@ -205,15 +207,15 @@
             currentFile = fileName;
             document.getElementById("active-file-label").innerText = `Editing: ${fileName}`;
             
-            // Determine language mode based on file extension for proper autocomplete hints
-            let lang = 'plaintext';
-            if (fileName.endsWith('.html')) lang = 'html';
-            else if (fileName.endsWith('.css')) lang = 'css';
-            else if (fileName.endsWith('.js')) lang = 'javascript';
+            // Set appropriate syntax highlighting mode based on file extension
+            let mode = "htmlmixed";
+            if (fileName.endsWith('.css')) mode = "css";
+            else if (fileName.endsWith('.js')) mode = "javascript";
+            else if (fileName.endsWith('.html')) mode = "htmlmixed";
 
-            if (editor) {
-                monaco.editor.setModelLanguage(editor.getModel(), lang);
-                editor.setValue(projectFiles[fileName].content);
+            if (codeMirrorEditor) {
+                codeMirrorEditor.setOption("mode", mode);
+                codeMirrorEditor.setValue(projectFiles[fileName].content);
             }
             renderFileList();
         }
@@ -244,7 +246,7 @@
         function resetProject() {
             if (confirm("Reset all files to defaults?")) {
                 localStorage.removeItem('millennium_ide_files');
-                initIDE();
+                location.reload();
             }
         }
 
@@ -253,6 +255,7 @@
             let css = "";
             let js = "";
 
+            // Gather all CSS and JS files dynamically from the virtual file system
             for (let file in projectFiles) {
                 if (file.endsWith(".css")) css += projectFiles[file].content + "\n";
                 if (file.endsWith(".js")) js += projectFiles[file].content + "\n";
@@ -275,7 +278,7 @@
         }
 
         async function configureAndSaveToGitHub() {
-            if (editor) projectFiles[currentFile].content = editor.getValue();
+            if (codeMirrorEditor) projectFiles[currentFile].content = codeMirrorEditor.getValue();
             
             let username = localStorage.getItem('gh_username') || prompt("GitHub Username:");
             let repo = localStorage.getItem('gh_repo') || prompt("GitHub Repository Name:");
@@ -309,6 +312,8 @@
             if (response.ok) alert(`Successfully saved "${currentFile}" to GitHub!`);
             else alert(`Failed to save: ${(await response.json()).message}`);
         }
+
+        window.onload = initIDE;
     </script>
 </body>
 </html>
