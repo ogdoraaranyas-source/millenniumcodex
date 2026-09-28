@@ -4,209 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Millennium Software Solutions - IDE</title>
+    
+    <!-- Load Monaco Editor via CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css">
+
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
+            background-color: #1e1e1e; color: #d4d4d4;
+            display: flex; height: 100vh; overflow: hidden;
         }
 
-        /* --- Left Sidebar --- */
+        /* Sidebar */
         .sidebar {
-            width: 260px;
-            background-color: #252526;
-            border-right: 1px solid #333;
-            display: flex;
-            flex-direction: column;
+            width: 260px; background-color: #252526;
+            border-right: 1px solid #333; display: flex; flex-direction: column;
         }
         .brand {
-            padding: 15px;
-            font-size: 14px;
-            font-weight: bold;
-            color: #4CAF50;
-            background-color: #2d2d2d;
-            border-bottom: 1px solid #333;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            padding: 15px; font-size: 14px; font-weight: bold;
+            color: #4CAF50; background-color: #2d2d2d;
+            border-bottom: 1px solid #333; text-transform: uppercase;
         }
         .file-explorer-header {
-            padding: 10px 15px;
-            font-size: 12px;
-            color: #969696;
-            text-transform: uppercase;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 10px 15px; font-size: 12px; color: #969696;
+            text-transform: uppercase; display: flex; justify-content: space-between; align-items: center;
         }
-        .file-actions {
-            display: flex;
-            gap: 8px;
-        }
+        .file-actions { display: flex; gap: 8px; }
         .action-btn {
-            background: none;
-            border: none;
-            color: #4CAF50;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
+            background: none; border: none; color: #4CAF50; cursor: pointer; font-size: 16px; font-weight: bold;
         }
-        .action-btn:hover {
-            color: #66bb6a;
-        }
-        .file-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            overflow-y: auto;
-            flex: 1;
-        }
+        .action-btn:hover { color: #66bb6a; }
+        .file-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
         .file-item {
-            padding: 8px 15px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 8px 15px; cursor: pointer; font-size: 14px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .file-item:hover {
-            background-color: #2a2d2e;
-        }
-        .file-item.active {
-            background-color: #37373d;
-            color: #ffffff;
-            border-left: 3px solid #4CAF50;
-        }
-        .delete-btn {
-            background: none;
-            border: none;
-            color: #f44336;
-            cursor: pointer;
-            font-size: 12px;
-            display: none;
-        }
-        .file-item:hover .delete-btn {
-            display: block;
-        }
+        .file-item:hover { background-color: #2a2d2e; }
+        .file-item.active { background-color: #37373d; color: #ffffff; border-left: 3px solid #4CAF50; }
+        .delete-btn { background: none; border: none; color: #f44336; cursor: pointer; font-size: 12px; display: none; }
+        .file-item:hover .delete-btn { display: block; }
 
-        /* --- Main Workspace Area --- */
-        .main-workspace {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        /* Top Bar with Buttons */
+        /* Workspace */
+        .main-workspace { flex: 1; display: flex; flex-direction: column; height: 100vh; }
         .top-bar {
-            background-color: #2d2d2d;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #333;
-            height: 50px;
+            background-color: #2d2d2d; padding: 10px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #333; height: 50px;
         }
-        .top-right-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .active-file-indicator {
-            font-size: 14px;
-            color: #858585;
-        }
+        .top-right-actions { display: flex; gap: 10px; align-items: center; }
+        .active-file-indicator { font-size: 14px; color: #858585; }
         .btn {
-            border: none;
-            padding: 6px 14px;
-            font-size: 13px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            border: none; padding: 6px 14px; font-size: 13px; font-weight: bold;
+            border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px;
         }
-        .run-btn {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .run-btn:hover {
-            background-color: #45a049;
-        }
-        .github-btn {
-            background-color: #24292e;
-            color: white;
-            border: 1px solid #444;
-        }
-        .github-btn:hover {
-            background-color: #2f363d;
-        }
+        .run-btn { background-color: #4CAF50; color: white; }
+        .run-btn:hover { background-color: #45a049; }
+        .github-btn { background-color: #24292e; color: white; border: 1px solid #444; }
+        .github-btn:hover { background-color: #2f363d; }
 
-        /* Split View: Editor & Preview */
-        .editor-preview-container {
-            display: flex;
-            flex: 1;
-            height: calc(100vh - 50px);
-        }
-        .editor-pane {
-            width: 50%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid #333;
-        }
-        textarea {
-            flex: 1;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
-            padding: 15px;
-            border: none;
-            resize: none;
-            outline: none;
-            line-height: 1.5;
-        }
-        .preview-pane {
-            width: 50%;
-            height: 100%;
-            background-color: white;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+        /* Split View */
+        .editor-preview-container { display: flex; flex: 1; height: calc(100vh - 50px); }
+        .editor-pane { width: 50%; height: 100%; border-right: 1px solid #333; }
+        
+        /* Monaco Container */
+        #monaco-editor { width: 100%; height: 100%; }
+
+        .preview-pane { width: 50%; height: 100%; background-color: white; }
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
 
-    <!-- Left Sidebar Menu -->
+    <!-- Left Sidebar -->
     <div class="sidebar">
         <div class="brand">Millennium Software Solutions</div>
         <div class="file-explorer-header">
             <span>Files</span>
             <div class="file-actions">
-                <button class="action-btn" onclick="resetProject()" title="Reset to Default Files" style="font-size: 12px; color: #ff9800;">Reset</button>
-                <button class="action-btn" onclick="createNewFile()" title="Create New File">+</button>
+                <button class="action-btn" onclick="resetProject()" title="Reset Files" style="font-size: 12px; color: #ff9800;">Reset</button>
+                <button class="action-btn" onclick="createNewFile()" title="New File">+</button>
             </div>
         </div>
-        <ul id="file-list" class="file-list">
-            <!-- Populated dynamically via JavaScript -->
-        </ul>
+        <ul id="file-list" class="file-list"></ul>
     </div>
 
     <!-- Main Workspace -->
     <div class="main-workspace">
-        <!-- Top Bar with Run and GitHub Buttons -->
         <div class="top-bar">
             <span id="active-file-label" class="active-file-indicator">Editing: index.html</span>
             <div class="top-right-actions">
@@ -215,43 +100,63 @@
             </div>
         </div>
 
-        <!-- Split Screen: Editor & Output -->
         <div class="editor-preview-container">
-            <!-- Left Side: Code Editor -->
+            <!-- Monaco Editor Pane replaces Textarea -->
             <div class="editor-pane">
-                <textarea id="code-editor" oninput="saveCurrentContent()"></textarea>
+                <div id="monaco-editor"></div>
             </div>
-            <!-- Right Side: Live Output Preview -->
+            <!-- Live Preview -->
             <div class="preview-pane">
                 <iframe id="output-preview"></iframe>
             </div>
         </div>
     </div>
 
+    <!-- Monaco Editor Loader Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
     <script>
         const defaultFiles = {
             "index.html": {
-                content: '<!DOCTYPE html>\n<html>\n<head>\n  <link rel="stylesheet" href="style.css">\n</head>\n<body>\n  <h1>Welcome to Millennium IDE</h1>\n  <p>Edit this code and click Run!</p>\n  <script src="script.js"><\/script>\n</body>\n</html>'
+                content: `<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Document</title>\n    <link rel="stylesheet" href="style.css">\n</head>\n<body>\n    <h1>Welcome to Millennium IDE</h1>\n    <p>Start typing HTML here for auto-hints...</p>\n    <script src="script.js"><\\/script>\n</body>\n</html>`
             },
             "style.css": {
-                content: "body {\n  font-family: sans-serif;\n  background: #f4f4f9;\n  text-align: center;\n  padding-top: 50px;\n}\nh1 {\n  color: #2c3e50;\n}"
+                content: "body {\n    font-family: sans-serif;\n    background: #f4f4f9;\n    text-align: center;\n    padding-top: 50px;\n}\nh1 {\n    color: #2c3e50;\n}"
             },
             "script.js": {
-                content: "console.log('Millennium IDE initialized successfully!');"
+                content: "console.log('Monaco Editor loaded successfully!');"
             }
         };
 
         let projectFiles = {};
         let currentFile = "index.html";
+        let editor = null;
+
+        // Initialize Monaco Editor
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min' }});
+        require(['vs/editor/editor.main'], function() {
+            editor = monaco.editor.create(document.getElementById('monaco-editor'), {
+                value: '',
+                language: 'html',
+                theme: 'vs-dark',
+                automaticLayout: true,
+                fontSize: 14
+            });
+
+            // Save changes automatically when typing
+            editor.onDidChangeModelContent(() => {
+                if (projectFiles[currentFile]) {
+                    projectFiles[currentFile].content = editor.getValue();
+                    persistStorage();
+                }
+            });
+
+            initIDE();
+        });
 
         function initIDE() {
             const savedData = localStorage.getItem('millennium_ide_files');
             if (savedData) {
-                try {
-                    projectFiles = JSON.parse(savedData);
-                } catch (e) {
-                    projectFiles = JSON.parse(JSON.stringify(defaultFiles));
-                }
+                try { projectFiles = JSON.parse(savedData); } catch (e) { projectFiles = JSON.parse(JSON.stringify(defaultFiles)); }
             } else {
                 projectFiles = JSON.parse(JSON.stringify(defaultFiles));
             }
@@ -288,38 +193,33 @@
                     const delBtn = document.createElement("button");
                     delBtn.className = "delete-btn";
                     delBtn.innerText = "✕";
-                    delBtn.title = "Delete File";
-                    delBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        deleteFile(fileName);
-                    };
+                    delBtn.onclick = (e) => { e.stopPropagation(); deleteFile(fileName); };
                     li.appendChild(delBtn);
                 }
-
                 fileListEl.appendChild(li);
             }
         }
 
         function switchFile(fileName) {
-            saveCurrentContent();
             if (!projectFiles[fileName]) return;
-
             currentFile = fileName;
-            document.getElementById("code-editor").value = projectFiles[fileName].content;
             document.getElementById("active-file-label").innerText = `Editing: ${fileName}`;
             
+            // Determine language mode based on file extension for proper autocomplete hints
+            let lang = 'plaintext';
+            if (fileName.endsWith('.html')) lang = 'html';
+            else if (fileName.endsWith('.css')) lang = 'css';
+            else if (fileName.endsWith('.js')) lang = 'javascript';
+
+            if (editor) {
+                monaco.editor.setModelLanguage(editor.getModel(), lang);
+                editor.setValue(projectFiles[fileName].content);
+            }
             renderFileList();
         }
 
-        function saveCurrentContent() {
-            if (projectFiles[currentFile]) {
-                projectFiles[currentFile].content = document.getElementById("code-editor").value;
-                persistStorage();
-            }
-        }
-
         function createNewFile() {
-            let fileName = prompt("Enter file name (e.g., about.html, custom.css):");
+            let fileName = prompt("Enter file name (e.g., about.html, style.css):");
             if (fileName && fileName.trim() !== "") {
                 fileName = fileName.trim();
                 if (!projectFiles[fileName]) {
@@ -333,41 +233,32 @@
         }
 
         function deleteFile(fileName) {
-            if (confirm(`Are you sure you want to delete ${fileName}?`)) {
+            if (confirm(`Delete ${fileName}?`)) {
                 delete projectFiles[fileName];
                 persistStorage();
-                
-                const remainingFiles = Object.keys(projectFiles);
-                currentFile = remainingFiles[0];
+                currentFile = Object.keys(projectFiles)[0];
                 switchFile(currentFile);
             }
         }
 
         function resetProject() {
-            if (confirm("Reset all files back to default templates? All custom files will be lost.")) {
+            if (confirm("Reset all files to defaults?")) {
                 localStorage.removeItem('millennium_ide_files');
                 initIDE();
             }
         }
 
         function runProject() {
-            saveCurrentContent();
-
             const html = projectFiles["index.html"] ? projectFiles["index.html"].content : "";
             let css = "";
             let js = "";
 
             for (let file in projectFiles) {
-                if (file.endsWith(".css")) {
-                    css += projectFiles[file].content + "\n";
-                }
-                if (file.endsWith(".js")) {
-                    js += projectFiles[file].content + "\n";
-                }
+                if (file.endsWith(".css")) css += projectFiles[file].content + "\n";
+                if (file.endsWith(".js")) js += projectFiles[file].content + "\n";
             }
 
             let bundledCode = html;
-            
             if (bundledCode.includes("</head>")) {
                 bundledCode = bundledCode.replace("</head>", `<style>${css}</style></head>`);
             } else {
@@ -380,80 +271,44 @@
                 bundledCode = bundledCode + `<script>${js}<\/script>`;
             }
 
-            const iframe = document.getElementById("output-preview");
-            iframe.srcdoc = bundledCode;
+            document.getElementById("output-preview").srcdoc = bundledCode;
         }
 
-        // --- GitHub Direct Integration ---
         async function configureAndSaveToGitHub() {
-            saveCurrentContent();
+            if (editor) projectFiles[currentFile].content = editor.getValue();
+            
+            let username = localStorage.getItem('gh_username') || prompt("GitHub Username:");
+            let repo = localStorage.getItem('gh_repo') || prompt("GitHub Repository Name:");
+            let token = localStorage.getItem('gh_token') || prompt("GitHub Personal Access Token (PAT):");
 
-            // Retrieve saved GitHub settings or prompt the user
-            let username = localStorage.getItem('gh_username') || prompt("Enter your GitHub Username:");
-            let repo = localStorage.getItem('gh_repo') || prompt("Enter your GitHub Repository name:");
-            let token = localStorage.getItem('gh_token') || prompt("Enter your GitHub Personal Access Token (PAT):");
+            if (!username || !repo || !token) return;
 
-            if (!username || !repo || !token) {
-                alert("GitHub username, repository, and token are required!");
-                return;
-            }
-
-            // Save credentials to localStorage so you only have to enter them once
             localStorage.setItem('gh_username', username);
             localStorage.setItem('gh_repo', repo);
             localStorage.setItem('gh_token', token);
 
-            // Save the currently active file to GitHub
             const fileContent = projectFiles[currentFile].content;
             const url = `https://api.github.com/repos/${username}/${repo}/contents/${currentFile}`;
-
             const base64Content = btoa(unescape(encodeURIComponent(fileContent)));
 
             let fileSha = null;
             try {
-                const getRes = await fetch(url, {
-                    headers: { "Authorization": `token ${token}` }
-                });
-                if (getRes.ok) {
-                    const data = await getRes.json();
-                    fileSha = data.sha;
-                }
-            } catch (err) {
-                console.log("Creating new file on GitHub...");
-            }
+                const getRes = await fetch(url, { headers: { "Authorization": `token ${token}` } });
+                if (getRes.ok) fileSha = (await getRes.json()).sha;
+            } catch (err) {}
 
-            const payload = {
-                message: `Update ${currentFile} from Millennium IDE`,
-                content: base64Content
-            };
+            const payload = { message: `Update ${currentFile} from Millennium IDE`, content: base64Content };
+            if (fileSha) payload.sha = fileSha;
 
-            if (fileSha) {
-                payload.sha = fileSha;
-            }
+            const response = await fetch(url, {
+                method: "PUT",
+                headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
 
-            try {
-                const response = await fetch(url, {
-                    method: "PUT",
-                    headers: {
-                        "Authorization": `token ${token}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok) {
-                    alert(`Successfully saved "${currentFile}" to GitHub repository "${repo}"!`);
-                } else {
-                    const errData = await response.json();
-                    alert(`Failed to save to GitHub: ${errData.message}`);
-                }
-            } catch (error) {
-                console.error(error);
-                alert("Network error connecting to GitHub API.");
-            }
+            if (response.ok) alert(`Successfully saved "${currentFile}" to GitHub!`);
+            else alert(`Failed to save: ${(await response.json()).message}`);
         }
-
-        window.onload = initIDE;
     </script>
 </body>
 </html>
