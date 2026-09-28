@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Millennium Software Solutions - IDE</title>
     
-    <!-- CodeMirror CSS for Code Editing & Theme -->
+    <!-- CodeMirror CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+    <!-- CodeMirror Hint Addon CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
 
     <style>
         * { box-sizing: border-box; }
@@ -69,7 +71,6 @@
         .editor-preview-container { display: flex; flex: 1; height: calc(100vh - 50px); }
         .editor-pane { width: 50%; height: 100%; border-right: 1px solid #333; display: flex; flex-direction: column; }
         
-        /* CodeMirror Styling Override to fill pane */
         .CodeMirror { flex: 1; height: auto !important; font-family: 'Courier New', Courier, monospace; font-size: 14px; }
 
         .preview-pane { width: 50%; height: 100%; background-color: white; }
@@ -113,17 +114,23 @@
         </div>
     </div>
 
-    <!-- CodeMirror Core and Mode Scripts -->
+    <!-- CodeMirror Core Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <!-- Modes -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+    <!-- Addons for Autocomplete Hints & Tag Closing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/xml-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
 
     <script>
         const defaultFiles = {
             "index.html": {
-                content: `<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Document</title>\n    <link rel="stylesheet" href="style.css">\n</head>\n<body>\n    <h1>Welcome to Millennium IDE</h1>\n    <p>Edit this file and click Run!</p>\n    <script src="script.js"><\\/script>\n</body>\n</html>`
+                content: `<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Document</title>\n    <link rel="stylesheet" href="style.css">\n</head>\n<body>\n    <h1>Welcome to Millennium IDE</h1>\n    <p>Type '<' to trigger HTML tag hints!</p>\n    <script src="script.js"><\\/script>\n</body>\n</html>`
             },
             "style.css": {
                 content: "body {\n    font-family: sans-serif;\n    background: #f4f4f9;\n    text-align: center;\n    padding-top: 50px;\n}\nh1 {\n    color: #2c3e50;\n}"
@@ -138,16 +145,23 @@
         let codeMirrorEditor = null;
 
         function initIDE() {
-            // Initialize CodeMirror
+            // Initialize CodeMirror with Autocomplete and Tag Closing enabled
             codeMirrorEditor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
                 lineNumbers: true,
                 theme: "dracula",
                 mode: "htmlmixed",
                 autoCloseTags: true,
-                matchBrackets: true
+                matchBrackets: true,
+                extraKeys: {"Ctrl-Space": "autocomplete"}
             });
 
-            // Save changes automatically when typing
+            // Trigger autocomplete hint popup automatically when typing tags or attributes
+            codeMirrorEditor.on("inputRead", function(cm, change) {
+                if (change.text[0] === "<" || change.text[0] === " ") {
+                    CodeMirror.commands.autocomplete(cm, null, {completeSingle: false});
+                }
+            });
+
             codeMirrorEditor.on("change", () => {
                 if (projectFiles[currentFile]) {
                     projectFiles[currentFile].content = codeMirrorEditor.getValue();
@@ -155,7 +169,6 @@
                 }
             });
 
-            // Load saved local storage files or defaults
             const savedData = localStorage.getItem('millennium_ide_files');
             if (savedData) {
                 try { projectFiles = JSON.parse(savedData); } catch (e) { projectFiles = JSON.parse(JSON.stringify(defaultFiles)); }
@@ -207,7 +220,6 @@
             currentFile = fileName;
             document.getElementById("active-file-label").innerText = `Editing: ${fileName}`;
             
-            // Set appropriate syntax highlighting mode based on file extension
             let mode = "htmlmixed";
             if (fileName.endsWith('.css')) mode = "css";
             else if (fileName.endsWith('.js')) mode = "javascript";
@@ -255,7 +267,6 @@
             let css = "";
             let js = "";
 
-            // Gather all CSS and JS files dynamically from the virtual file system
             for (let file in projectFiles) {
                 if (file.endsWith(".css")) css += projectFiles[file].content + "\n";
                 if (file.endsWith(".js")) js += projectFiles[file].content + "\n";
@@ -310,7 +321,7 @@
             });
 
             if (response.ok) alert(`Successfully saved "${currentFile}" to GitHub!`);
-            else alert(`Failed to save: ${(await response.json()).message}`);
+            else alert(`Failed to save: ${(await response.json()).json().message}`);
         }
 
         window.onload = initIDE;
